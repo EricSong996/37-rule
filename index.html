@@ -1526,7 +1526,7 @@
   <script>
     "use strict";
 
-    const gate = { model: "", chosen: false, animating: false, lastY: 0, locking: false };
+    const gate = { model: "", chosen: false, animating: false, lastY: 0, locking: false, opening: false };
 
     (function () {
       const pages = document.querySelectorAll(".page");
@@ -1562,7 +1562,7 @@
       function goTo(from, to) {
         if (reduce) {
           to.scrollIntoView({ block: "start" });
-          gate.lastY = window.scrollY;
+          gate.lastY = to.offsetTop;
           return;
         }
         const root = document.documentElement;
@@ -1572,25 +1572,49 @@
         root.style.scrollBehavior = "auto";
         animating = true;
         gate.animating = true;
+        gate.lastY = to.offsetTop;
         const duration = 900;
         const t0 = performance.now();
+        function land() {
+          const y = to.offsetTop;
+          window.scrollTo(0, y);
+          gate.lastY = y;
+        }
         function frame(now) {
           const p = Math.min((now - t0) / duration, 1);
           const e = 1 - Math.pow(1 - p, 3);
           window.scrollTo(0, startTop + distance * e);
+          gate.lastY = to.offsetTop;
           paint(from, e);
           paint(to, 1 - e);
           if (p < 1) {
             requestAnimationFrame(frame);
             return;
           }
-          animating = false;
-          gate.animating = false;
-          window.scrollTo(0, to.offsetTop);
-          gate.lastY = window.scrollY;
-          root.style.scrollSnapType = "";
-          root.style.scrollBehavior = "";
-          update();
+          land();
+          let held = 0;
+          function hold() {
+            land();
+            held += 1;
+            if (held < 4) {
+              requestAnimationFrame(hold);
+              return;
+            }
+            root.style.scrollSnapType = "";
+            root.style.scrollBehavior = "";
+            land();
+            animating = false;
+            gate.animating = false;
+            update();
+            setTimeout(function () {
+              const y = to.offsetTop;
+              const movedOn = window.scrollY > y + 40;
+              if (!movedOn && Math.abs(window.scrollY - y) > 24) land();
+              if (!movedOn) gate.lastY = y;
+              gate.opening = false;
+            }, 700);
+          }
+          requestAnimationFrame(hold);
         }
         requestAnimationFrame(frame);
       }
@@ -1621,8 +1645,8 @@
       }
 
       function onGateScroll() {
-        if (animating || gate.locking) {
-          gate.lastY = window.scrollY;
+        if (animating || gate.locking || gate.opening) {
+          gate.lastY = gate.opening ? Math.max(gate.lastY, window.scrollY) : window.scrollY;
           return;
         }
         const y = window.scrollY;
@@ -1632,8 +1656,7 @@
           lockTo(page5);
           return;
         }
-        if (prev <= page14.offsetTop + 4 && y > page14.offsetTop + 4) {
-          document.documentElement.classList.remove("ending-open");
+        if (!document.documentElement.classList.contains("ending-open") && prev <= page14.offsetTop + 4 && y > page14.offsetTop + 4) {
           lockTo(page14);
           return;
         }
@@ -1660,7 +1683,7 @@
         if (e.touches.length) touchY = e.touches[0].clientY;
       }, { passive: true });
       window.addEventListener("touchmove", function (e) {
-        if (animating || !e.touches.length) return;
+        if (animating || gate.opening || !e.touches.length) return;
         if (touchY - e.touches[0].clientY > 0 && blockedDown()) e.preventDefault();
       }, { passive: false });
       window.addEventListener("keydown", function (e) {
@@ -1676,6 +1699,7 @@
 
       function openEnding(which) {
         const root = document.documentElement;
+        gate.opening = true;
         root.classList.toggle("ending-1", which === 1);
         root.classList.toggle("ending-2", which === 2);
         root.classList.add("ending-open");
@@ -1688,12 +1712,37 @@
         goTo(page14, page16);
       }
 
-      document.getElementById("ending-1").addEventListener("click", function () {
-        openEnding(1);
-      });
-      document.getElementById("ending-2").addEventListener("click", function () {
-        openEnding(2);
-      });
+      function bindEnding(id, which) {
+        const btn = document.getElementById(id);
+        let last = 0;
+        let startX = 0;
+        let startY = 0;
+        let moved = false;
+        btn.addEventListener("touchstart", function (e) {
+          if (!e.touches.length) return;
+          startX = e.touches[0].clientX;
+          startY = e.touches[0].clientY;
+          moved = false;
+        }, { passive: true });
+        btn.addEventListener("touchmove", function (e) {
+          if (!e.touches.length) return;
+          if (Math.abs(e.touches[0].clientX - startX) > 12 || Math.abs(e.touches[0].clientY - startY) > 12) moved = true;
+        }, { passive: true });
+        function fire(e) {
+          if (e.type === "touchend") {
+            if (moved) return;
+            e.preventDefault();
+          }
+          const now = performance.now();
+          if (now - last < 800) return;
+          last = now;
+          openEnding(which);
+        }
+        btn.addEventListener("touchend", fire, { passive: false });
+        btn.addEventListener("click", fire);
+      }
+      bindEnding("ending-1", 1);
+      bindEnding("ending-2", 2);
 
       window.addEventListener("scroll", requestUpdate, { passive: true });
       window.addEventListener("resize", requestUpdate);
