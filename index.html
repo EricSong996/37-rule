@@ -177,17 +177,7 @@
       --delay: 0s;
       clip-path: polygon(4% 8%, 14% 0, 38% 3%, 62% 0, 86% 2%, 100% 10%, 98% 36%, 100% 68%, 94% 100%, 68% 96%, 36% 100%, 8% 94%, 0 72%, 2% 34%);
     }
-    .scrap-b {
-      right: 7vw;
-      top: 12vh;
-      padding: 16px 18px 14px;
-      font-size: 24px;
-      --a: 10deg;
-      --swing: -18deg;
-      --dur: 1s;
-      --delay: -0.25s;
-      clip-path: polygon(8% 0, 36% 4%, 70% 0, 100% 12%, 96% 48%, 100% 86%, 78% 100%, 42% 96%, 6% 100%, 0 70%, 3% 28%);
-    }
+    .scrap-b { display: none; }
     .scrap-c {
       left: 6.5vw;
       bottom: 11vh;
@@ -198,14 +188,32 @@
       clip-path: polygon(2% 10%, 22% 0, 58% 4%, 90% 0, 100% 18%, 97% 58%, 100% 92%, 74% 100%, 40% 96%, 8% 100%, 0 74%, 4% 36%);
     }
     .scrap-d {
-      right: 6vw;
-      bottom: 12vh;
+      right: 5vw;
+      top: 8vh;
       --a: 8deg;
       --swing: -16deg;
       --dur: 1s;
       --delay: -0.75s;
       clip-path: polygon(6% 0, 28% 4%, 64% 0, 96% 6%, 100% 28%, 97% 62%, 100% 94%, 72% 100%, 34% 96%, 4% 100%, 0 68%, 3% 24%);
     }
+    .cover-id {
+      position: absolute;
+      right: 4.6vw;
+      bottom: 6.5vh;
+      z-index: 2;
+      margin: 0;
+      padding: 14px 22px 13px;
+      background: #e8e8ed;
+      border-radius: 18px;
+      color: #1d1d1f;
+      font-family: "PingFang SC", "Hiragino Sans GB", sans-serif;
+      font-size: 17px;
+      font-weight: 500;
+      line-height: 1.55;
+      letter-spacing: 0.04em;
+      text-align: left;
+    }
+    .cover-id span { display: block; white-space: nowrap; }
     @keyframes scrap-rock {
       0% { transform: rotate(var(--a)); }
       50% { transform: rotate(calc(var(--a) + var(--swing))); }
@@ -1155,6 +1163,7 @@
     @media (max-width: 720px) {
       .cover h1 { font-size: 48px; }
       .scrap { display: none; }
+      .cover-id { right: 16px; bottom: 16px; padding: 10px 14px; font-size: 14px; border-radius: 14px; }
       .cover .lead { font-size: 19px; }
       .scene-copy p { font-size: 17px; }
       .scene-copy .quote { font-size: 22px; }
@@ -1220,9 +1229,9 @@
 <body>
   <section class="cover page" id="page-1">
     <p class="scrap scrap-a" aria-hidden="true">P(A|B) = <span class="frac"><b>P(A∩B)</b><i>P(B)</i></span></p>
-    <p class="scrap scrap-b" aria-hidden="true">P(X ≥ x)</p>
     <p class="scrap scrap-c" aria-hidden="true">E[X] = Σ x p(x)</p>
     <p class="scrap scrap-d" aria-hidden="true">Var(X) = E[X<sup>2</sup>] − E[X]<sup>2</sup></p>
+    <p class="cover-id"><span>姓名：宋睿泽</span><span>学号：2025212810</span></p>
     <div class="page-content">
       <h1>37%法则</h1>
       <p class="lead">不准反悔，当场决定，<br>你能从这如同时间流逝的队列里<br>遇到最好的那个TA吗？</p>
